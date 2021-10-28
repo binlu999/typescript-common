@@ -48,8 +48,40 @@ function validate(validated: validable): boolean {
   return isValid;
 }
 
+//Abstract class for HTML components
+abstract class Component<T extends HTMLElement, U extends HTMLElement>{
+  templateElement: HTMLTemplateElement;
+  hostElement: T;
+  element: U
+  constructor(
+    templateId: string,
+    hostElementId: string,
+    insertAtBegining:boolean,
+    newElementId?: string) {
+    this.templateElement = document.getElementById(templateId)! as HTMLTemplateElement;
+    this.hostElement = document.getElementById(hostElementId) as T;
+    const importedNode = document.importNode(
+      this.templateElement.content,
+      true
+    );
+    this.element = importedNode.firstElementChild as U;
+    if (newElementId) {
+      this.element.id = newElementId;
+    }
+
+    this.attach(insertAtBegining);
+  }
+
+  private attach(insertAtBegining:boolean) {
+    this.hostElement.insertAdjacentElement( insertAtBegining? 'afterbegin':'beforeend',this.element);
+  }
+  abstract configure():void;
+  abstract renderContent():void;
+
+}
+
 //Enum for project stat
-enum ProjectStatus{
+enum ProjectStatus {
   ACTIVE,
   FINISHED
 }
@@ -58,21 +90,21 @@ enum ProjectStatus{
 class Project {
   constructor(
     public id: string,
-    public title: string, 
-    public description: string, 
+    public title: string,
+    public description: string,
     public people: number,
-    public status:ProjectStatus
-    ) { };
+    public status: ProjectStatus
+  ) { };
 }
 
 //Listener Type
-type Listener = (projects:Project[]) => void;
+type Listener = (projects: Project[]) => void;
 
 //Project stat management
 
 class ProjectStat {
   private projects: Project[] = [];
-  private listeners: Listener[]=[];
+  private listeners: Listener[] = [];
   private static instance: ProjectStat;
   private constructor() {
   }
@@ -86,7 +118,7 @@ class ProjectStat {
 
   addProject(title: string, description: string, people: number) {
     const project = new Project(
-      Math.random().toString(),title,description,people,ProjectStatus.ACTIVE);
+      Math.random().toString(), title, description, people, ProjectStatus.ACTIVE);
     this.projects.push(project);
     for (const listn of this.listeners) {
       console.log('Call listener');
@@ -101,47 +133,36 @@ class ProjectStat {
 
 const porjectStat = ProjectStat.getInstance();
 //ProjectList class
-class ProjectList {
-  templateElement: HTMLTemplateElement;
-  hostElement: HTMLDivElement;
-  element: HTMLElement
-
+class ProjectList extends Component<HTMLDivElement,HTMLElement> {
   constructor(private type: 'active' | 'finished') {
+    super('project-list','app',false,`${type}-projects`)
     this.templateElement = document.getElementById('project-list')! as HTMLTemplateElement;
     this.hostElement = document.getElementById('app')! as HTMLDivElement;
 
-    const importedNode = document.importNode(
-      this.templateElement.content,
-      true
-    )
-    this.element = importedNode.firstElementChild as HTMLElement;
-    this.element.id = `${this.type}-projects`
-    console.log("Adding listener for type "+this.type);
     porjectStat.addListener((projects: Project[]) => {
-      console.log("original length"+projects.length);
-      const relventedProjects=projects.filter( project =>{
-        if(this.type='active'){
-          return project.status===ProjectStatus.ACTIVE;
-        }else
-          return project.status===ProjectStatus.FINISHED;
+
+      const relventedProjects = projects.filter(project => {
+        if (this.type === 'active') {
+          return project.status === ProjectStatus.ACTIVE;
+        } else
+          return project.status === ProjectStatus.FINISHED;
       });
-      console.log("relevented length"+relventedProjects.length)
-      console.log("listener type:"+this.type);
       this.renderProjects(relventedProjects);
     });
-    this.attach();
+
     this.renderContent();
   }
 
-  private renderContent() {
+  configure(){
+
+  } ;
+
+  renderContent() {
     const listId = `${this.type}-project-list`;
     this.element.querySelector('ul')!.id = listId;
     this.element.querySelector('h2')!.textContent = this.type.toUpperCase() + ' PROJECTS';
   }
 
-  private attach() {
-    this.hostElement.insertAdjacentElement('beforeend', this.element)
-  }
 
   private renderProjects(projects: Project[]) {
     const projectListEl = document.getElementById(`${this.type}-project-list`) as HTMLElement;
