@@ -48,6 +48,16 @@ function validate(validated: validable): boolean {
   return isValid;
 }
 
+interface Draggable{
+  dragStartHandler(event:DragEvent):void;
+  dragEndHandler(event:DragEvent):void;
+}
+
+interface DragTarget{
+  dragOverHandler(event:DragEvent):void;
+  dropHandler(event:DragEvent):void;
+  dragLeaveHandler(event:DragEvent):void;
+}
 //Abstract class for HTML components
 abstract class Component<T extends HTMLElement, U extends HTMLElement>{
   templateElement: HTMLTemplateElement;
@@ -98,8 +108,17 @@ class Project {
 }
 
 //Project Item class
-class ProjectItem extends Component<HTMLUListElement,HTMLLIElement>{
+class ProjectItem extends Component<HTMLUListElement,HTMLLIElement> 
+      implements Draggable{
   private project :Project;
+
+  get persons(){
+    if(this.project.people===1){
+      return "1 person";
+    }else{
+      return `${this.project.people} persons`;
+    }
+  }
   constructor(hostId:string,project:Project){
     super('single-project',hostId,false,project.id);
     this.project=project;
@@ -108,10 +127,23 @@ class ProjectItem extends Component<HTMLUListElement,HTMLLIElement>{
     console.log("Host id ="+hostId);
     console.log("item id="+project.id);
   }
-  configure(){};
+
+  @autobind
+  dragStartHandler(event:DragEvent){
+    event.dataTransfer!.setData('text/plain',this.project.id);
+    event.dataTransfer!.effectAllowed='move';
+  }
+
+  dragEndHandler(_:DragEvent){
+    console.log('drag end event');
+  }
+  configure(){
+    this.element.addEventListener('dragstart',this.dragStartHandler);
+    this.element.addEventListener('dragend',this.dragEndHandler);
+  };
   renderContent(){
     this.element.querySelector('h2')!.textContent=this.project.title;
-    this.element.querySelector('h3')!.textContent=this.project.people.toString();
+    this.element.querySelector('h3')!.textContent=this.persons+" assigned"
     this.element.querySelector('p')!.textContent=this.project.description;
   }
 };
@@ -146,9 +178,21 @@ class ProjectStat extends State<Project>{
     const project = new Project(
       Math.random().toString(), title, description, people, ProjectStatus.ACTIVE);
     this.projects.push(project);
-    for (const listn of this.listeners) {
-      console.log('Call listener');
-      listn(this.projects);
+    this.updateProjects()
+  }
+
+  moveProject(id:string,status:ProjectStatus){
+    const project=this.projects.find(proj=>proj.id===id);
+    if(project){
+      console.log("New status:"+status);
+      project.status=status;
+      this.updateProjects();
+    }
+  }
+
+  updateProjects(){
+    for(const l of this.listeners){
+      l(this.projects);
     }
   }
 
@@ -156,7 +200,8 @@ class ProjectStat extends State<Project>{
 
 const porjectStat = ProjectStat.getInstance();
 //ProjectList class
-class ProjectList extends Component<HTMLDivElement,HTMLElement> {
+class ProjectList extends Component<HTMLDivElement,HTMLElement> 
+      implements DragTarget {
   constructor(private type: 'active' | 'finished') {
     super('project-list','app',false,`${type}-projects`)
     
@@ -164,7 +209,31 @@ class ProjectList extends Component<HTMLDivElement,HTMLElement> {
     this.renderContent();
   }
 
+  @autobind
+  dragOverHandler(event:DragEvent){
+    if(event.dataTransfer && event.dataTransfer.types[0] === 'text/plain'){
+      event.preventDefault();
+      const listEl=this.element.querySelector('ul')!;
+      listEl.classList.add('droppable');
+    }
+  }
+
+  @autobind
+  dropHandler(event:DragEvent){
+    const projId=event.dataTransfer!.getData('text/plain');
+    porjectStat.moveProject(projId,this.type==='active' ? ProjectStatus.ACTIVE : ProjectStatus.FINISHED);
+  }
+
+  @autobind
+  dragLeaveHandler(event:DragEvent){
+    const listEl=this.element.querySelector('ul')!;
+    listEl.classList.remove('droppable');
+  }
+
   configure(){
+    this.element.addEventListener('dragover',this.dragOverHandler);
+    this.element.addEventListener('drop',this.dropHandler);
+    this.element.addEventListener('dragleave',this.dragLeaveHandler);
     porjectStat.addListener((projects: Project[]) => {
 
       const relventedProjects = projects.filter(project => {
