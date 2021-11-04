@@ -2,7 +2,9 @@
 /// <reference path="models/models.ts" />
 /// <reference path="components/project-input.ts" />
 /// <reference path="components/project-list.ts" />
-/// <reference path="" />
+/// <reference path="decorators/autobind.ts" />
+/// <reference path="project-state/project-state.ts" />
+
 
 namespace APP {
  
