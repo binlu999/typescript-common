@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const form = document.querySelector('form')!;
 const addressInput = document.getElementById('address')! as HTMLInputElement;
-const gapikey = "AIzaSyBQlpgDCj_H9E8WjYi9KnP8YcJdR4lgGZE";
+const gapikey = "";
 
 //No longer needed after @types/googlemaps
 //declare var google:any;
