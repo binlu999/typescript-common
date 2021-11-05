@@ -1,5 +1,5 @@
 {
-  "name": "3rd-party-lib",
+  "name": "geo-location",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -9,19 +9,15 @@
   },
   "author": "",
   "license": "ISC",
+  "dependencies": {
+    "axios": "^0.24.0"
+  },
   "devDependencies": {
-    "@types/lodash": "^4.14.176",
+    "@types/googlemaps": "^3.43.3",
     "ts-loader": "^6.2.1",
     "typescript": "^3.7.2",
     "webpack": "^4.41.2",
     "webpack-cli": "^3.3.10",
     "webpack-dev-server": "^3.9.0"
-  },
-  
-  "dependencies": {
-    "class-transformer": "0.2.3",
-    "class-validator": "^0.13.1",
-    "lodash": "^4.17.21",
-    "reflect-metadata": "0.1.13"
   }
 }

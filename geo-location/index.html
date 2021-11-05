@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <script
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBQlpgDCj_H9E8WjYi9KnP8YcJdR4lgGZE"
+      async
+      defer
+    ></script>
+<!--
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.1.1/css/ol.css" type="text/css">
+    <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.1.1/build/ol.js"></script>
+-->
+
+    <script type="module" src="dist/app-bundle.js" defer ></script>
+    <link rel="stylesheet" href="app.css">
+  </head>
+  <body>
+   <div id="map">
+     <p>Please enter an address!</p>
+   </div>
+   <form>
+     <input type="text" id="address" >
+     <button type="submit" >Search Address</button>
+   </form>
+    
+  </body>
+</html>
